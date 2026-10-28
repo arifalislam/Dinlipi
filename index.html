@@ -277,6 +277,13 @@
     display:inline-flex; align-items:center; background:var(--s); color:var(--on);
     font-size:14px; font-weight:600; padding:5px 14px; border-radius:999px; white-space:nowrap;
   }
+  .arc-wrap{ margin:18px 0 6px; }
+  .arc-wrap svg{ display:block; width:100%; height:auto; max-height:170px; }
+  .arc-base{ stroke:var(--line); stroke-width:2; }
+  .arc-path{ fill:none; stroke:var(--s); stroke-width:3; stroke-dasharray:1 8; stroke-linecap:round; }
+  .arc-sun{ fill:var(--s); }
+  .arc-halo{ fill:var(--s); opacity:.22; }
+  .arc-noon{ stroke:var(--line); stroke-width:1; stroke-dasharray:2 4; }
   .stat-row{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-top:16px; }
   @media (max-width:640px){ .stat-row{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
   .stat{ background:var(--card2); border-radius:18px; padding:14px 16px; min-width:0; }
@@ -322,23 +329,6 @@
   .gal-track .cap-t{ display:block; margin-bottom:2px; font-size:16px; font-weight:600; color:var(--ink); }
   .gal-track figcaption a{ color:var(--blue); text-underline-offset:2px; overflow-wrap:anywhere; }
 
-  /* ---------- 3D Earth, Sun and Moon ---------- */
-  .orb{ margin:18px 0 6px; border-radius:22px; overflow:hidden; background:#05060d; color:#fff; }
-  .orb canvas{ display:block; width:100%; aspect-ratio:16 / 9; }
-  .orb-bar{ display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,.07); }
-  .orb input[type="range"]{ -webkit-appearance:none; appearance:none; flex:1; min-width:0; height:28px; margin:0; background:transparent; cursor:pointer; }
-  .orb input[type="range"]::-webkit-slider-runnable-track{ height:4px; border-radius:2px; background:rgba(255,255,255,.28); }
-  .orb input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:22px; height:22px; margin-top:-9px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.4); }
-  .orb input[type="range"]::-moz-range-track{ height:4px; border-radius:2px; background:rgba(255,255,255,.28); }
-  .orb input[type="range"]::-moz-range-thumb{ width:22px; height:22px; border:0; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.4); }
-  .orb input[type="range"]:focus-visible, .orb button:focus-visible{ outline:3px solid #0a84ff; outline-offset:2px; }
-  .orb-time{ min-width:84px; text-align:right; font-size:14.5px; font-weight:600; font-variant-numeric:tabular-nums; }
-  .orb-now{ flex:none; padding:5px 14px; border-radius:999px; background:rgba(255,255,255,.16); font-size:14px; font-weight:600; }
-  .orb-now[aria-pressed="true"]{ background:#0a84ff; }
-  .orb-now:hover{ background:rgba(255,255,255,.26); }
-  .orb-info{ display:flex; justify-content:space-between; gap:4px 16px; flex-wrap:wrap; padding:2px 16px 14px; font-size:14px; color:rgba(255,255,255,.8); }
-  @media (max-width:520px){ .orb-bar{ gap:8px; padding:8px 10px; } .orb-time{ min-width:76px; font-size:13.5px; } }
-  @media (pointer:coarse){
   /* ---------- date sheet ---------- */
   dialog{
     position:fixed; inset:auto 0 0 0; width:100%; max-width:none; max-height:min(92dvh, 780px);
@@ -413,8 +403,6 @@
   }
   .faq details[open] summary::after{ transform:rotate(225deg); }
   .faq details p{ margin:0 0 16px; font-size:16.5px; line-height:1.8; }
-  .skip{ position:absolute; left:-999px; top:8px; background:var(--ink); color:var(--bg); padding:8px 14px; border-radius:10px; font-size:15px; z-index:20; }
-  .skip:focus{ left:8px; }
 
   @media (max-width:640px){
     .head{ flex-wrap:wrap; align-items:flex-start; }
@@ -436,20 +424,36 @@
   }
 </style>
 <script>
-  /* apply stored or system theme before first paint of the content */
+  /* theme: light in Dhaka daytime, dark at night (sunrise to sunset); a manual toggle holds until the next sunrise/sunset */
   (function(){
-    var t = null;
-    try { t = localStorage.getItem('sunalmanac.theme'); } catch(e){}
-    if (t !== 'dark' && t !== 'light') {
-      t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    var K = 'dinlipi.theme', R = Math.PI / 180;
+    function phase(){
+      var n = new Date(Date.now() + 216e5);
+      var doy = (Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()) - Date.UTC(n.getUTCFullYear(), 0, 0)) / 864e5;
+      var min = n.getUTCHours() * 60 + n.getUTCMinutes();
+      var g = 2 * Math.PI / 365 * (doy - 1 + (n.getUTCHours() - 12) / 24);
+      var eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+      var dc = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+      var arg = Math.cos(90.833 * R) / (Math.cos(23.81 * R) * Math.cos(dc)) - Math.tan(23.81 * R) * Math.tan(dc);
+      var ha = Math.acos(Math.max(-1, Math.min(1, arg))) / R, noon = 720 - 4 * 90.41 - eq + 360;
+      var day = min >= noon - ha * 4 && min < noon + ha * 4;
+      var ref = day ? n : new Date(n.getTime() - 432e5);
+      return { day: day, id: (day ? 'd' : 'n') + (ref.getUTCFullYear() * 10000 + (ref.getUTCMonth() + 1) * 100 + ref.getUTCDate()) };
     }
-    document.documentElement.setAttribute('data-theme', t);
+    function current(){
+      var ph = phase(), t = ph.day ? 'light' : 'dark', ov = null;
+      try { ov = JSON.parse(localStorage.getItem(K)); } catch(e){}
+      if (ov && ov.p === ph.id && (ov.t === 'light' || ov.t === 'dark')) t = ov.t;
+      return t;
+    }
+    function set(t){ try { localStorage.setItem(K, JSON.stringify({ t: t, p: phase().id })); } catch(e){} }
+    window.DIN_THEME = { current: current, set: set };
+    document.documentElement.setAttribute('data-theme', current());
   })();
 </script>
 
 </head>
 <body>
-<a class="skip" href="#main">ক্যালেন্ডারে যান</a>
 <div class="wrap">
   <header class="head">
     <div class="head-main">
@@ -663,7 +667,7 @@
     haArg = Math.max(-1, Math.min(1, haArg));
     var ha = deg * Math.acos(haArg);
     var noon = 720 - 4 * LON - eq + TZ * 60;
-    return { sunriseMin: noon - ha * 4, sunsetMin: noon + ha * 4, solarNoon: noon, decl: decl };
+    return { sunriseMin: noon - ha * 4, sunsetMin: noon + ha * 4, solarNoon: noon };
   }
 
   /* ---------- Bengali date (Bangladesh revised calendar) ---------- */
@@ -721,7 +725,15 @@
     var btn = document.getElementById('themeBtn'), label = dark ? 'হালকা থিমে যান' : 'গাঢ় থিমে যান';
     btn.setAttribute('aria-label', label);
     btn.setAttribute('title', label);
+    var metas = document.querySelectorAll('meta[name="theme-color"]');
+    for (var i = 0; i < metas.length; i++){ metas[i].removeAttribute('media'); metas[i].setAttribute('content', dark ? '#000000' : '#f2f2f7'); }
   }
+  function autoTheme(){
+    var t = DIN_THEME.current();
+    if (document.documentElement.getAttribute('data-theme') !== t){ document.documentElement.setAttribute('data-theme', t); renderTheme(); }
+  }
+  setInterval(autoTheme, 30000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) autoTheme(); });
 
   function renderYearTabs(){
     var html = '<div class="seg" role="group" aria-label="বছর">';
@@ -1054,291 +1066,17 @@
   }
 
   /* ---------- render: day ---------- */
-  /* ---------- 3D Earth, Sun and Moon ---------- */
-  /* Land map: 1 degree cells, 4 coverage levels (a=0 .. d=3), run-length coded, row by row from 90N, -180 */
-  var LAND_RLE = 'a2263b5a26b21a298b5c2d1c1d11c4b2a3b6a1b4c3d3c1d10c6b3a288b3c1d2c2d1c1d4c2d9c3b4d2c1d4c1d3c1d3c2d12c1d5c5b1c7b1a62b1a5b3a4b2a25b2a3b1a164b1a2b2c1d3c2b3c2b1c1d1c5d4c3b2c2d45c4b2a32b5a1b3a4b2a12b6a4b1c1b5a1b2a14b2a11b1d1c3b1a156b3a3b1a2b3c2d5c3d2c2d4c2b3a4b2d44c1b3a28c2b1c1b1c3b2c5b1a64b3c1d4c1a1b3a143b4a4b1c4b1a1b1c1b1a1b1c5b1c5d5c2a2b1c3d47c1b3a28b2c2b1c2d2b4a6b1a67b3c5a1b2a132b7c2b1a4b2a1b4a2b4a2b1a1b1c5d1c1d2c1a5b3c4d45c1b2a32c1d2c1b1a2b1c1b1a77b2c2b1a131b1c2d1c3b1c1b2a2b2a3b2a1b2c1b3c2b2c1b2c4b4c2b1a7b2c1d1c1d1c4d39c1b3a33b2a44b4c3b1a25b3a1b3d6c5b2a24b1a13b1a86b4c5b2c1d3b5c1d2b3c1b2d2c2b2c6b1a19b2d36c2b3a73b2c1d2c1b4a16b1a4b3c4d19c1a21b1a1c1d2c1d1c3a1b5a84b8a3b5a13b3a1b13a21b2d34c2b1a74b1d2c1b2a24b1c2d22b4a24b3a1b1a5b3a84b1d7c1b2a6b2c1b1a3c4a1b1d3c1b1a1b1c2b2c6b2a19b1c1d27c7b1a73b1c1d1c1b1a12b2a8b2c5d19c2b2c3b2c2b2a4b1c2b3a11b1c2b1a90b1d5c3d3c1d1c3b1c1d1c1a2b1c2d2c1b2d1b2a2c1d2b1c2d3c5b1a19b1c2d27c3b1a74b1c1d1c1a12b1c4a2b1a1b4c2d46b1a9b1c5b5a30b3a20b2a30b1c2b2a1b1c2d8c1d2c1a4b1c1b2c3a3c2d2c1d10c3b1a15b1c1b2c1d23c1d1c2d1c1b1a72b1c2d1c1a11b1c1d3b2d1b1c3d2c3d45b1a2c2b5c1d10b2a27b1a18b2c2d2c2d1c1b6a18b1a2b1a6b1c5d8c1b3a3b1d3c1a2b2c2d6c2d6c3b2a12b1c4d21c2d1c1b4a40b5c6b1a23b3a1b2a7c1d4c1a1c1d7c2d47c1d20c2d5c1a19b1a16b1d21c3b1a2b1c1b1c5d1c1b1c1b1c3b2a1b1c2d7c2d2c1b4c1b3d2c1b2a3b1c3b5c2d6c2a12b1c1b2c1d25c1b1a38b1a1b1c1d1c1d9c3b3a12b2a9b2c3b4d4c1b1c3d7c1d75c1b1c3b2c2b2d2c4b3c2b1a10b1c1d48c2b7c3b3a3b1d1c1b2c1d2c1d1c1a1b1c1d2c1b1a1b1a2b3c1d4c1b2a12b1c1b1d21c2b2a40b1c2d20c1b1a4b4a1b4c2b3c1d1c2d6c1b1d4b2d2b1d91c2d13c1a10b1c1d47c5d1c3d4c8d7b1c1d4b1a3b1c2b3d6c2b1a9c1d1c1d17c1b1a46b1c1d24c1a3c1b3c1d23c1a1c1d2c1d102c2d3b1d2c1b1a3b5c2d52c1d20c1b1c2b1a7b2d5c2d3c1b1a7b1c1d14c1d1c1b1a11b1a3b1a1b2a28c1d18c2b1c3d1c1b4c1d1c1d23c1b2c1d106b4d3c1b2a2b1d77c2d1b1c1b2a5b4c1d5c1a1b1c2b1a8b1c1d11c1b4a12b1c3d5c1b1a25c1d8c1b3c1d8c1a4b1c1d139a4b2c1b1a5b6d73b2d3c1b1a3c2b2c1d7c1a12b1c2d9b1a16b2d6c1b1a24b1d10b1a2c1d10b2c4d135c2b2a8b3a4b1a1b2d67c4a3b1c2a2b2a1b2a4b1c1d2c2d2b1a12b1d9c1b1a17b7a24b1c1d9c1b2c1d14c1d140c1b1a14b1d72c1b1a7b1c1a2b1a1b5a2b2c2b3a13b1c1d6c1a34b1a12b2c1d9c1b1a2c1d141c2d10c2b1c1b1a14c1d14c1d56b1a13b1a1c1d5b1a5b2a14b1c1d5c1a47c3d9b1a3b1d134c1b3c2b2d8c1b2a18b2c1d11c1b1d2c1b3c1d49b1a16c1d7b2a3b1a17b2c2b1a40b1a6c2d10c1b2a1b1c1d2c1b2c2d124c1b1a4b1a1c2d1c3b1c2b1a21b1a2b1a1c1d7b1a1b1c1b1a7b3c1d43b1a16c1d7b1a3b1d1b1a18b1a49b1d4c1d7c1a4b5c1d113c3b1c3b2c1d1c1b1a5b1d2b2a33b4c1d3b2a14b1c3d39c2a14b1c1d8c1b1c1d3b1a55b3c1a8b1c1d1c1b1a1b1d4c1b1a4b2c1d116b1a9b1a6b1c1d2b1a1b1a36b1c2b2c1b1a15b1c3d40b3a13c1d14b1a53b2c1d1c2a11b2a1c1d3c1a1b1a2b1c1a1c1d114c1b1a16c1d4c1a36b1c2b1a21b2c2d43c1a8b1a2c1d14b1a54b1c1d2b1a10c1d1b1a1b1d2c1b1a4d117b1a16b1d6c1b1a33b4a25b1c3d43c1b4a4b1d16b2a51b3c1d2b1a9c2b1c3b1a6c1d114b2a17b1d5c1a32b4a29b1a1b1d47c1a2b1d20c1b1a47b1c1d2b2c1d2b1a8b1d1b4a1b2c2b1d115c1b2a1b1a2b1a12b1d4c1b1a29b3a33c1b2c1d46c1b1a2d18c2d1c2a46c1d2c1a1b2d2c1b1a4b2c2d5c1d122c2d1c1b1c1a13d3c1a25b1a42b1a1b1c2d45b1a2c1d22b1a44b1c1d1c2a1b1d5c1a2b1c1d135b1d1b1a12c1d1b1a14b1a57b1c1d46c1b1c1d19c1b1c1b1a44b3a3b1c1d4b1a1b1d136c1b1d1b1a12b1c1a21b1a52c4d57c7b1a1b1c1a50b1c2b5d138b1a1c2a11b1a77b1d1c2d55c1b5a3b1d2c2b1a51b2c1d139b1a1d1c1b1a90c3d52c3d2b1a5c1d4b1a48b1c3d141b1a1c1a92b1d1c1d51c2d3c1b1a4b4c1b1c1b1a48b1c1d40c1d100b1a2c1a93d59c1b3c1a6b1a51c1d31c1b1d3c1b1a1c1d99b1a2b1c1b1a92d58c5b1a58b1d13c2d15c1a2b1c1d1b3d99b1a3b2a4b3a86d55c1b2c2b2a60b1d9c2d2b1a1b1d13c1b1a3b2a2b1c1d96c1b1a4b1d1b1a1b3a87b1d53c1b1a3b1a56b1c1b1c1b3c1d4c1b1c2b1a2c1d2b1a1b1c1d11b1a10b1c1d93c1b1a4b1c1d3b1a89b1d53b1a61c1d11b1a4b3c1d2b1a2b1c1d8c1a13c1d88c1b3a5b1c1b1c1b1a91b1d51c2b1a61c1d9c1b1a5b2a2b1c1d2b1a2c1d8b4c1d2c1b1a4c1d87c1a10b2a93b1d50b2a63c1d8c1a7c2a4b1d1c2b1c1d2c2b2c2b1d91c1b1d6c1b1a10d1c1a94c1d46c3a64b1d8c1a2b2a4c1b1a5b1c1a1b1a1c1d2a3c1d91c1b1a1b1c1b2c1d1c1a12d2a94b1d46c2a65b1c1d7c1a15b2a3b1c3b1a1b1d90c1b1a2b1a3d3b1a10b1d1b1a95b1d45c1b1a66c2d5c1b1a9b1a2b1c1d1b1a5c1d1b2a1b1c1d91b1c2b1a2b1c1d2b1a6b1a1b1d2a97c1d45a69b1c1b3a2b2c2d1c1d4c1a3b1a7b1a5b1c1b2c2b2c1d83c1b1a4b1d2b1a6c2d2c1a97b1c1d43c1b1a69c1b4c1d10c1a12b4a5b2a2d83c1a6b1d2b1a2b2c2d3c1b1a98b1c1d41c1b1a69b1d16b1a21b2a1b1d83c1a6b2a1b1a1c6b2a102b1c1d37c1b1a69b1c1d17c1b1a23c1d84c1a5b1a2b1c1b1c2b2a107d36c1a70b1d21c3b1a4b1c2b1a10b1d86b1a8c2a111c1d1b1c1d31c1a71c1d24c1b1a3d5c1b2a2b2a1b1c1d86c1a8b2a112d1b1a1c1d21c6d3c1a71c1d27b2d29c1d71b1a8b1a113b1c1b1c1d17b3c2b1a3b3d1c1a70b1d42c1d1c1d13b1a1b1d70c1b1a122b1c1b1c1d14c1b1a12c1d1b1a62b2a2b1a1b1d43c3d13b1a2c1d69c1a123b1d1c1a1c1d12c1a14c1d1c1a66b1d46c1a1b1d12c1b1a1b2d3c1d63c1a125b1c1b1a1b1d11c1a15c1d1a1b2a62b1c1d47b1a1c1d13b1a2b4d62c1a127b1c1a1b1c1d10c1a15b1c1a65c1d48c1a1b1d13b1c1a3b4c8d52b1a1b1a126c1b1a2c1d9b1a18b2a61b1d50b1a1b1d13b1a1b1c1d1c1a10c1d50b1a1b1c1a127b2a2c1d8b1a14b2a65c1d50c1a2b1d18c1b1a8b1c1d47c1b1a2c1b1a78b1a53c1d7b1a12b1c1b1c1d1c1b1a4b1a56b1d52b1a2d20c1a9c2d19c2d21c2b1a4c1a81b1a51b1d7b1a7b1c1b1a2b1a1b1a2b1c2b1a2b1a56d54a2c1d19b1a9b1d2c1d14b3a2d15c1b1c2b2a90b2a49b1d7c1a6b1d2c1a9b1d1c1b1a57b1d53b1a1b1d18b1a11b3d13c1a5b1d13b1a2b2a93c1a49b1c1d7c1a5c1d2b1a9b1a3b1c3b1a52b1d53b1a2b1d16c1a14b1d12b1a7b1d11c1a2b1d1c1a145c1d7c1b2c2d2c1b1a9b2a1b3d1c1b5a48b1d53c1b1a2c1d14c1a16d11b1a9c1d10c1a2b1c1b1a9b1c1b1a135b1d12c1a10b1a5b1a54b1d54c1a3c1d12b1a17c1d8c1b1a10b1d1c1d9c1a13c1d1b1a137b1c1d3c1d5c1a71b1d55b1a2b1d9c1b1a19c1d7c1b1a11c2b1c1d9c1a11b1c1d1b1a140b1a2b1d4c3d1c1b1a66c1d55c1b1a1b1d8c1b1a20b1d6b1a14b1a1b1d10c1a11d1b1a145b1d8c1a65b1d58b1a1d6b1a24c1d5b1a17d11a11b1c1b1a146b2c2d3b1a66c1d58b1c1d1c1b2a26b1d5b1a11b1a5c1d1b1d8b1a10b3c1b1a147b1d3b1a11b1a54c1d59b2a8b2a20d5b1a11b1a5b1d1a1b1c1d6b1a10b6a147b1d2b1a9b1c1b2c1b1a4b1a46b2d58b1a4b2c1b1a23b1d3c1a12b1a5b1c1a3d5c1a13c1b3a148c1d1c1a7b1d3c1d2c1b1c1b2c1b2a46c1d58b1c2d4a25d3c1a18b2a3b1c1d2b1a11b1a2b1c1b2a148b2d1b1a1b3a2c1d3b1d9c1b1a46c1d63c1a25c1d1c1a1c1a17c1b1a4b1c1b1a11b1a3b4a150b1c3b2c2d15c1b1a45b1d63b1a25b1c1b2d1b1a16c1d1b1a3b1a12b1a5b1c1d1b1a151b1c1a1b1d19b1a45c1d61c1a29b1d1c1a11b1a5c1b1a21c1b1d2b1a24b1a130c1d19b1a45b1c1d11c2b1c1d44b1a30d1c1a17b1c2a14b2a6d1c1b1a155b1d23c1b1a42c1d4c2d2c1b1a4c1d42c1a46b3a2c1d1c1a12b1d2c1b1a5b1a156b1d25b1a42b1c1b1a11b1c1b2d38c1a47b1d2b1a1b1d2b1a10c1d3b1a163b1d26a59b2d37b1a48b1d2b1a1c1d1b1a9c1d3c1a163b1d27b1a59b1d35c1b1a48b3d2b2c2a7c1d5c1a10b1a152c1d28a59b1d34b1a52b2d2c1b1c1b1a4c2d7b1a1b2a2b1a2b2a151d29c1a56b1a2c1d33b1a53b1a1c1d3b2a4d8c1b5c1b1a2b2a139b2a9b1d29c2b3a55c1d32b1a55b1a1d3c1b1a4c1d7b1a1b1a1b3a3b2a1b2c1b1a1b1a143c1d30c2d2c1b1a53c1d31c1a56b1a1b1d3b2a4d6c1a2c3b4a1b2a1b2d2b1a1b3a140b1d35c2b1a1b1a49b1d30c1a60d4c1b2a2d6b1a1b1d1c2a6b2a2b1c1b1a1c1d2c2b1a4b1a3b1a128b1d40c1b1a48b1d29a61b1c1d3a5b3c2b1a1b1c1b1d1b1a3c1b4a1b1c3d6c1b2a6b2a125b1d43b1a48b1d27b1a62b1c1d1c1a13b3c1b1a11b1c1d8b1a5b2a125b1d45c1a47c1d26a65c1b1a13b5a8b1a1b1a2b1d7c1b5c1a2b1a124b1d45a47b1d25c1b1a65b1d1c1b4a22b1a3b1d8b1a1b2a4b2a123b1d44b1a47d26b1a66b1c3d2c1b2a11b1a4b1a6c1d5c1d2b1a8b3a122c1d43a48c1d25b1a70b6c2b2c1b7a9b2a1c1d2b1a2c1d1b1a2b1a5b1a1b2a120b1d42b1a48c1d25c1a79b2a2b1c1b1a15b2a4c1d1b2a8b3a120d41b1a49b1d26b1a79b1a2b2a17b1a5b3a10b1a120b1d39c1a50b1d26b1a2b1a86b4a8c1a140c1d37c1a51c1d26b1a8b1a80b1c2d2c2a4b1d1b1a43b2a94b1d37a51b1d27b1a7c1d1a79b1d6b1a4b1d1b1a139b1c1d36a51c1d27c1a6b1d2b1a74b1c2b2d5c1a5b1d1c2a139b1c1d35a51d28b1a4b2d2c1b1a73b1d11b1a4b1d3b1a20b3a117b1c1d33a50b1d27c1a4b1d4c1a72b2c1d12c1b1a2c1d3c1a21b2a10b1a30b1a77b1d31c1a50b1d25c1b1a5d5b1a72c1d16c1b1d5a31b2a110b1d30b1a51c1d23c1a7c1d4b1a71b1d24b1a30b2a110b1d30b1a51b1d22b1a8c1d3c1a71b1c1d24c1b1a141b1d29c1a53c1d20c1a9c1d3c1a8b1a58b2c1d29c1a15b1a124b1d29a54b1d21b1a7b1d4b1a6b1a58b1c1d33b1a15c1b1a122b1d28b1a55c1d20b1a7c1d3c1a65b1c1d34c1b1a15b1a122b1d24c1a59b1d20b1a7b1d3c1a65b1d36c1b1a137b1d22c1a61b1d19c1b1a7b1d3b1a65b1d38b1a136c1d21c1a62b1d17c1b1a10b3a66b1d38c1b1a135c1d21b1a63c1d17a80b1c1d38a136d22b1a63c1d16c1a81d39b1a134b1d22b1a64c1d15b1a81c1d38b1a134b1d21b1a66d14b1a83d38b1a134c1d19c1b1a67c1d12c1a84d38a135c1d19b1a69c1d10c1a85b1d12c2b1c1d20c1a135b1d18c1a70c1d9c1a86b1d9b3a5b1d18b1a135c1d17c1a71c1d7c1b1a87c1d5c1d1c1a10b1d2b1d13b1a136d13c5b1a71b1c2b1a2b1a90b1d2c1b1a15c1a1b1c1d11c1a22b1a113c1d14c1a193b3d11b1a22c1b1a111b1d16b1a195b1d10a24c1b1a110c1d15c1a197c1d7c2a24b1d1b3a107b1d13c2b1a198b2c1b1c2b1a26b1d3b1a107b1d11a236c1d2b1a108c1d8c1d1c1a207b1a1b2a23b1a2c2a109c2d7a1b1a207b1d1c1d1b1a22b1d1c1b2a109b2c1d7b2a208c1d2a23c1d1c1a111b2d7c1a211b2a21b1d2c1a112b1c1d7c1a232b1d3b1a113c2d5c1b1a232b1d3c1a113b1c1d6c1a233b4a115c1d8b1a232b1a116c2d7b1a350b1c1d6b1a135b1c1b1a213b1c2d4b1a234b1a118c3d2c1a8b1c1b1a343b1c5b1a7b1a346b1d1c1b1c2b1a354b1c6b1a27b2a326b3a1821b1a349b1a354b3a358b2c1b1a352b2c2b3a352b1d1c1b1a114b1a46b1a11b2a177b3c1d1b3a111b1c1d4b1a28b1a1b9c2b2c1d3c3b4d3c1b1a6b5a2b1c3d1c4b4a149b2c2b1a108b2c3d1c1d7c1b9a1b1a11b2c1d1c1d28c3d1c3d23b3a141b2a2b1d1c1b2a95b2a6b2c1d26c1a8c1d67c1b3c1b2c1b1a129b1a2b1c1d1b2c1d4b2a76b1a16b1d2b3a1b1d29a4b3c2d78c3b1a124b1a3b1c1d1b1c1d4c1b2a52b2a9b6c1b2c5b1c1b6a2b2c3d37b1a2c1d88b1c1b5a91b1a1b1a1b1a20b2c3d2c1b1d5c1a49b1c1d1b1c1d1c5b1c1d67c1a1b1c1d96c2b1a85b4c1b4a3b4a9b2a1b2a1b1c2b3d6b1a46b2c1d180c1a63c1b2a1b4a15b1c1b1c2d1c8d1c4b4c1d1c1b2c3b1c3d7c1b1a43b1c2d179c1b3a54b14c3b1c4d1c1b1c1b1a8b1c1d38b1a43c3d177c2b2a49b4c2d27c8d1c4d33c2b1a38b6c1d180b1a47b3c2d66c1b3c5b2a37b2c2d189b1a39c2d1c3b3c3d64c3d2c1b3a25b2a10b2c2d195c1b1a1b3a28b1a4b3c1d70c1b1c3b2a2b1a3b4a16b1c1d4c1b1a6b1d199c1b4a28b1c4b1a5b2c2d67c5b1a4b1c1b1a18c1d6c1a9b3c2d189c1a49c1d70c3b2a20c7b4a7b4c2d189c1b1a42b3c4d81c3b1a22b1c2d201b2a42b2d87c2b1a5b3c3d5c1b2c1d205c3b2a31b2c2d95c2b1c2d226c2b3a1b1a5c2b1c1b10a5b2c8d329c2d16c4b1c1b8c1d1769';
-  var LAND = null, LW = 360, LH = 180;
-  var RAD = Math.PI / 180, ELEV = 0.4, AZ = 0.6, CAMD = 9, ORB_R = 2.25, MOON_R = 0.27;
-  var ORB = { live:false, tm:0, min:720, key:'', cv:null, vis:true, ro:null, io:null, fam:'sans-serif', stars:null, ecv:null, eimg:null, mcv:null, mimg:null, txt:{} };
-
-  function decodeLand(){
-    LAND = new Uint8Array(LW * LH);
-    var re = /([a-d])(\d+)/g, m, i = 0;
-    while ((m = re.exec(LAND_RLE))){ var n = +m[2]; LAND.fill(m[1].charCodeAt(0) - 97, i, i + n); i += n; }
-  }
-  function landAt(lat, lon){
-    var u = ((((lon + 180) % 360) + 360) % 360) / 360 * LW - 0.5, v = (90 - lat) / 180 * LH - 0.5;
-    var x0 = Math.floor(u), y0 = Math.floor(v), fx = u - x0, fy = v - y0;
-    var x1 = (x0 + 1 + LW) % LW; x0 = (x0 + LW) % LW;
-    var ya = Math.min(LH - 1, Math.max(0, y0)), yb = Math.min(LH - 1, Math.max(0, y0 + 1));
-    var a = LAND[ya * LW + x0], b = LAND[ya * LW + x1], c = LAND[yb * LW + x0], d = LAND[yb * LW + x1];
-    return ((a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy) / 3;
-  }
-  function sstep(a, b, x){ var t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
-
-  /* sun, Earth and Moon geometry for a date and a Dhaka clock minute */
-  function orbAstro(y, m, d, min){
-    var sun = calcSun(y, m, d), H = (min - sun.solarNoon) / 4;
-    var utc = Date.UTC(y, m - 1, d, 0, 0) + (min - TZ * 60) * 60000;
-    var jd = utc / 864e5 + 2440587.5, syn = 29.530588853;
-    var age = (((jd - 2451550.1) % syn) + syn) % syn;
-    var eps = age / syn * 360;
-    var alt = Math.asin(Math.sin(LAT * RAD) * Math.sin(sun.decl * RAD) + Math.cos(LAT * RAD) * Math.cos(sun.decl * RAD) * Math.cos(H * RAD)) / RAD;
-    return { decl:sun.decl, lonS:LON - H, eps:eps, age:age, illum:(1 - Math.cos(eps * RAD)) / 2, alt:alt };
-  }
-  function moonName(e){
-    if (e < 12 || e >= 348) return 'অমাবস্যা';
-    if (e < 78) return 'শুক্লপক্ষের চাঁদ (বাড়ছে)';
-    if (e < 102) return 'প্রথম চতুর্থাংশ';
-    if (e < 168) return 'বাড়ন্ত গোলাকার চাঁদ';
-    if (e < 192) return 'পূর্ণিমা';
-    if (e < 258) return 'কমন্ত গোলাকার চাঁদ';
-    if (e < 282) return 'শেষ চতুর্থাংশ';
-    return 'কৃষ্ণপক্ষের চাঁদ (কমছে)';
-  }
-
-  /* world -> screen: x right, y up, z toward the viewer; the camera looks down on the ecliptic by ELEV */
-  function proj(x, y, z, cx, cy, R){
-    var ca = Math.cos(AZ), sa = Math.sin(AZ), c = Math.cos(ELEV), s = Math.sin(ELEV);
-    var x1 = x * ca + z * sa, z1 = -x * sa + z * ca;
-    var yy = y * c - z1 * s, zz = y * s + z1 * c, k = CAMD / (CAMD - zz);
-    return { x:cx + x1 * k * R, y:cy - yy * k * R, z:zz, k:k };
-  }
-
-  function paintEarth(ctx, cx, cy, R, A){
-    var size = Math.ceil(R * 2) + 4, half = size / 2;
-    if (!ORB.ecv || ORB.ecv.width !== size){
-      ORB.ecv = document.createElement('canvas'); ORB.ecv.width = ORB.ecv.height = size;
-      ORB.eimg = ORB.ecv.getContext('2d').createImageData(size, size);
-    }
-    var data = ORB.eimg.data, sd = Math.sin(A.decl * RAD), cd = Math.cos(A.decl * RAD), cE = Math.cos(ELEV), sE = Math.sin(ELEV), lonS = A.lonS;
-    var ca = Math.cos(AZ), sa = Math.sin(AZ), hx = -ca, hy = -sa * sE, hz = sa * cE + 1, hl = Math.sqrt(hx * hx + hy * hy + hz * hz);
-    hx /= hl; hy /= hl; hz /= hl;
-    for (var py = 0; py < size; py++){
-      var ny = -(py + 0.5 - half) / R;
-      for (var px = 0; px < size; px++){
-        var nx = (px + 0.5 - half) / R, r2 = nx * nx + ny * ny, idx = (py * size + px) * 4;
-        if (r2 > 1.02){ data[idx + 3] = 0; continue; }
-        var al = Math.min(1, (1 - Math.sqrt(r2)) * R + 0.5);
-        if (al <= 0){ data[idx + 3] = 0; continue; }
-        var nz = Math.sqrt(Math.max(0, 1 - r2));
-        var y1 = ny * cE + nz * sE, z1 = -ny * sE + nz * cE;
-        var wx = nx * ca - z1 * sa, wy = y1, wz = nx * sa + z1 * ca;
-        var lit = -wx;
-        var sinLat = -wx * sd + wy * cd, lat = Math.asin(Math.max(-1, Math.min(1, sinLat))) / RAD;
-        var lon = lonS + Math.atan2(wz, -wx * cd - wy * sd) / RAD;
-        var land = sstep(0.34, 0.66, landAt(lat, lon));
-        var ice = sstep(62, 74, Math.abs(lat)) * land;
-        /* base colours: ocean, forest green, polar white */
-        var dr = 28 + land * (70 - 28), dg = 104 + land * (166 - 104), db = 220 + land * (86 - 220);
-        dr += ice * (238 - dr); dg += ice * (242 - dg); db += ice * (248 - db);
-        var nr = 6 + land * 8, ng = 14 + land * 12, nb = 38 - land * 12;
-        var day = sstep(-0.07, 0.14, lit), shade = 0.6 + 0.4 * Math.max(0, lit);
-        var r = nr + (dr * shade - nr) * day, g = ng + (dg * shade - ng) * day, b = nb + (db * shade - nb) * day;
-        var tw = Math.exp(-(lit * lit) / 0.0072);                       /* sunrise / sunset band */
-        r += 95 * tw; g += 38 * tw; b -= 14 * tw;
-        var sp = Math.max(0, nx * hx + ny * hy + nz * hz);               /* sun glint on the sea */
-        sp = Math.pow(sp, 36) * (1 - land) * day * 0.55; r += 255 * sp; g += 255 * sp; b += 255 * sp;
-        var rim = Math.pow(1 - nz, 2.6) * (0.18 + 0.82 * day);          /* thin atmosphere */
-        r += 40 * rim; g += 100 * rim; b += 210 * rim;
-        data[idx] = r < 0 ? 0 : r > 255 ? 255 : r; data[idx + 1] = g < 0 ? 0 : g > 255 ? 255 : g; data[idx + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
-        data[idx + 3] = al * 255;
-      }
-    }
-    ORB.ecv.getContext('2d').putImageData(ORB.eimg, 0, 0);
-    ctx.drawImage(ORB.ecv, cx - half, cy - half);
-  }
-
-  var MARIA = [[-0.28,0.52,0.26],[0.16,0.46,0.18],[0.36,0.12,0.21],[-0.58,0.12,0.3],[-0.24,-0.36,0.19],[0.72,0.3,0.11],[0.6,-0.14,0.16],[0.05,-0.05,0.14]];
-  function paintMoon(ctx, mx, my, mr, A, dir){
-    var size = Math.ceil(mr * 2) + 4, half = size / 2;
-    if (!ORB.mcv || ORB.mcv.width !== size){
-      ORB.mcv = document.createElement('canvas'); ORB.mcv.width = ORB.mcv.height = size;
-      ORB.mimg = ORB.mcv.getContext('2d').createImageData(size, size);
-    }
-    var data = ORB.mimg.data, cE = Math.cos(ELEV), sE = Math.sin(ELEV), ca = Math.cos(AZ), sa = Math.sin(AZ);
-    var f = { x:Math.cos(A.eps * RAD), y:0, z:-Math.sin(A.eps * RAD) };          /* near side faces the Earth */
-    var rt = { x:f.z, y:0, z:-f.x };                                              /* (0,1,0) x f */
-    for (var py = 0; py < size; py++){
-      var ny = -(py + 0.5 - half) / mr;
-      for (var px = 0; px < size; px++){
-        var nx = (px + 0.5 - half) / mr, r2 = nx * nx + ny * ny, idx = (py * size + px) * 4;
-        if (r2 > 1.05){ data[idx + 3] = 0; continue; }
-        var al = Math.min(1, (1 - Math.sqrt(r2)) * mr + 0.5);
-        if (al <= 0){ data[idx + 3] = 0; continue; }
-        var nz = Math.sqrt(Math.max(0, 1 - r2));
-        var y1 = ny * cE + nz * sE, z1 = -ny * sE + nz * cE;
-        var wx = nx * ca - z1 * sa, wy = y1, wz = nx * sa + z1 * ca;
-        var lit = -wx;
-        var bx = wx * rt.x + wy * rt.y + wz * rt.z, by = wy, bz = wx * f.x + wz * f.z;
-        var dark = 0;
-        if (bz > 0){
-          for (var i = 0; i < MARIA.length; i++){
-            var q = MARIA[i], dx = bx - q[0], dy = by - q[1];
-            dark += Math.exp(-(dx * dx + dy * dy) / (q[2] * q[2] * 0.9));
-          }
-        }
-        dark = Math.min(0.55, dark * 0.5);
-        var tone = 1 - dark, day = sstep(-0.03, 0.12, lit), sh = 0.3 + 0.7 * Math.max(0, lit);
-        var base = 226 * tone * sh;
-        var r = 13 + (base - 13) * day, g = 17 + (base * 0.99 - 17) * day, b = 28 + (base * 0.93 - 28) * day;
-        data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = al * 255;
-      }
-    }
-    ORB.mcv.getContext('2d').putImageData(ORB.mimg, 0, 0);
-    ctx.drawImage(ORB.mcv, mx - half, my - half);
-  }
-
-  function orbStars(){
-    if (ORB.stars) return ORB.stars;
-    var s = 7, out = [];
-    for (var i = 0; i < 90; i++){
-      s = (s * 16807) % 2147483647; var a = s / 2147483647;
-      s = (s * 16807) % 2147483647; var b = s / 2147483647;
-      s = (s * 16807) % 2147483647; var c = s / 2147483647;
-      out.push([a, b, 0.3 + c * 0.6, c > 0.9 ? 1.6 : 1]);
-    }
-    return (ORB.stars = out);
-  }
-
-  function orbPlace(ctx, W, H, text, x, y, align){
-    ctx.font = '600 ' + Math.round(W * 0.03) + 'px ' + ORB.fam;
-    ctx.textAlign = align; ctx.textBaseline = 'middle';
-    ctx.lineWidth = Math.max(3, W * 0.006); ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineJoin = 'round';
-    ctx.strokeText(text, x, y); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillText(text, x, y);
-  }
-
-  function drawOrb(){
-    var cv = ORB.cv; if (!cv || !LAND) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var W = Math.max(320, Math.min(1100, Math.round((cv.clientWidth || 640) * dpr))), H = Math.round(W * 9 / 16);
-    if (cv.width !== W || cv.height !== H){ cv.width = W; cv.height = H; }
-    var ctx = cv.getContext('2d'), A = ORB.A = orbAstro(ORB.y, ORB.m, ORB.d, ORB.min);
-    var cx = W * 0.56, cy = H * 0.52, R = W * 0.145;
-
-    /* space */
-    var bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#05060d'); bg.addColorStop(1, '#0b0f1f');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-    orbStars().forEach(function(s){ ctx.fillStyle = 'rgba(255,255,255,' + s[2] + ')'; ctx.fillRect(s[0] * W, s[1] * H, s[3] * dpr, s[3] * dpr); });
-
-    /* sun, off to the left; its light travels right */
-    var sx = W * 0.03, sy = cy, sr = W * 0.085;
-    var glow = ctx.createRadialGradient(sx, sy, sr * 0.6, sx, sy, W * 0.5);
-    glow.addColorStop(0, 'rgba(255,176,40,.55)'); glow.addColorStop(0.35, 'rgba(255,120,20,.14)'); glow.addColorStop(1, 'rgba(255,120,20,0)');
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
-    var core = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
-    core.addColorStop(0, '#fffbe6'); core.addColorStop(0.55, '#ffd60a'); core.addColorStop(1, '#ff9500');
-    ctx.fillStyle = core; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, 7); ctx.fill();
-    var beam = ctx.createLinearGradient(sx, 0, cx, 0); beam.addColorStop(0, 'rgba(255,190,70,.10)'); beam.addColorStop(1, 'rgba(255,190,70,0)');
-    ctx.fillStyle = beam; ctx.beginPath(); ctx.moveTo(sx, sy - sr * 0.9); ctx.lineTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.lineTo(sx, sy + sr * 0.9); ctx.fill();
-
-    /* moon position */
-    var mw = { x:-Math.cos(A.eps * RAD) * ORB_R, y:0, z:Math.sin(A.eps * RAD) * ORB_R };
-    var mp = proj(mw.x, mw.y, mw.z, cx, cy, R), mr = MOON_R * R * mp.k;
-
-    /* orbit ring: back half behind the Earth, front half over it */
-    function ring(front){
-      ctx.lineWidth = Math.max(1, W * 0.002);
-      var N = 120, prev = null;
-      for (var i = 0; i <= N; i++){
-        var th = i / N * Math.PI * 2, p = proj(Math.cos(th) * ORB_R, 0, Math.sin(th) * ORB_R, cx, cy, R);
-        if (prev && (p.z >= 0) === front && (prev.z >= 0) === front){
-          ctx.strokeStyle = front ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.14)';
-          ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(p.x, p.y); ctx.stroke();
-        }
-        prev = p;
-      }
-    }
-    ring(false);
-    if (mp.z < 0) paintMoon(ctx, mp.x, mp.y, mr, A);
-
-    /* Earth */
-    var halo = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, R * 1.22);
-    halo.addColorStop(0, 'rgba(110,170,255,.45)'); halo.addColorStop(1, 'rgba(110,170,255,0)');
-    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, R * 1.22, 0, 7); ctx.fill();
-    paintEarth(ctx, cx, cy, R, A);
-
-    /* axis and Dhaka */
-    var sd = Math.sin(A.decl * RAD), cd = Math.cos(A.decl * RAD);
-    var ax = { x:-sd, y:cd, z:0 }, e1 = { x:-cd, y:-sd, z:0 }, e2 = { x:0, y:0, z:1 };
-    [1, -1].forEach(function(sg){
-      var p0 = proj(ax.x * 1.0 * sg, ax.y * 1.0 * sg, 0, cx, cy, R), p1 = proj(ax.x * 1.32 * sg, ax.y * 1.32 * sg, 0, cx, cy, R);
-      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = Math.max(1.2, W * 0.0025); ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
-    });
-    var la = LAT * RAD, dl = (LON - A.lonS) * RAD;
-    var dv = { x:Math.sin(la) * ax.x + Math.cos(la) * (Math.cos(dl) * e1.x + Math.sin(dl) * e2.x),
-               y:Math.sin(la) * ax.y + Math.cos(la) * (Math.cos(dl) * e1.y + Math.sin(dl) * e2.y),
-               z:Math.sin(la) * ax.z + Math.cos(la) * (Math.cos(dl) * e1.z + Math.sin(dl) * e2.z) };
-    var dp = proj(dv.x, dv.y, dv.z, cx, cy, R);
-    ORB.dhakaVisible = dp.z > 0.02;
-    if (ORB.dhakaVisible){
-      var pr = Math.max(3, W * 0.009);
-      ctx.fillStyle = 'rgba(255,45,85,.28)'; ctx.beginPath(); ctx.arc(dp.x, dp.y, pr * 2.6, 0, 7); ctx.fill();
-      ctx.fillStyle = '#ff2d55'; ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(1.5, W * 0.0035);
-      ctx.beginPath(); ctx.arc(dp.x, dp.y, pr, 0, 7); ctx.fill(); ctx.stroke();
-      orbPlace(ctx, W, H, 'ঢাকা', dp.x + pr * 2.4, dp.y - pr * 0.4, 'left');
-    }
-
-    ring(true);
-    if (mp.z >= 0) paintMoon(ctx, mp.x, mp.y, mr, A);
-
-    orbPlace(ctx, W, H, 'সূর্য', W * 0.02, cy + sr + W * 0.04, 'left');
-    orbPlace(ctx, W, H, 'চাঁদ', mp.x, mp.y - mr - W * 0.028, 'center');
-  }
-
-  function orbBar(){
-    var A = ORB.A || orbAstro(ORB.y, ORB.m, ORB.d, ORB.min);
-    var set = function(id, txt){ var el = document.getElementById(id); if (el && ORB.txt[id] !== txt){ ORB.txt[id] = txt; el.textContent = txt; } };
-    set('orbTime', timeText(Math.floor(ORB.min)));
-    var rg = document.getElementById('orbRange'); if (rg && +rg.value !== Math.floor(ORB.min)) rg.value = Math.floor(ORB.min);
-    var dayTxt = A.alt > 0 ? 'ঢাকায় দিন · সূর্যের উচ্চতা ' + bnNum(Math.round(A.alt)) + '°' : A.alt > -6 ? 'ঢাকায় গোধূলি' : 'ঢাকায় রাত';
-    set('orbDay', dayTxt);
-    set('orbMoon', moonName(A.eps) + ' · ' + bnNum(Math.round(A.illum * 100)) + '% আলোকিত');
-    var nb = document.getElementById('orbNow'); if (nb) nb.setAttribute('aria-pressed', String(ORB.live));
-  }
-
-  function nowMinF(){ return dhakaNow().min + new Date().getSeconds() / 60; }
-  function orbTick(){
-    if (!ORB.cv || !document.body.contains(ORB.cv)){ clearInterval(ORB.tm); ORB.tm = 0; return; }
-    if (!ORB.live || !ORB.vis || document.hidden) return;
-    ORB.min = nowMinF();
-    drawOrb(); orbBar();
-  }
-  function orbRefresh(){
-    if (!ORB.cv) return;
-    if (ORB.live) ORB.min = nowMinF();
-    drawOrb(); orbBar();
-  }
-  function orbHTML(isToday){
-    return '<div class="orb">'
-      + '<canvas id="orbCv" role="img" aria-label="পৃথিবী, সূর্য ও চাঁদের ত্রিমাত্রিক দৃশ্য। পৃথিবী নিজের অক্ষে ঘুরছে, ঢাকা লাল বিন্দুতে চিহ্নিত।"></canvas>'
-      + '<div class="orb-bar">'
-      +   '<input id="orbRange" type="range" min="0" max="1439" step="1" value="720" aria-label="ঢাকার সময় বেছে নিন (ডিফল্টে এখনকার সময়)">'
-      +   '<output id="orbTime" class="orb-time" for="orbRange"></output>'
-      +   (isToday ? '<button class="orb-now" id="orbNow" data-action="orb-now" aria-pressed="true">এখন</button>' : '')
-      + '</div>'
-      + '<div class="orb-info"><span id="orbDay"></span><span id="orbMoon"></span></div>'
-      + '</div>';
-  }
-  function initOrb(y, m, d, isToday){
-    if (!LAND) decodeLand();
-    var cv = document.getElementById('orbCv'); if (!cv) return;
-    clearInterval(ORB.tm); ORB.tm = 0;
-    var key = y + '-' + m + '-' + d;
-    if (ORB.key !== key){ ORB.key = key; ORB.live = !!isToday; ORB.min = isToday ? nowMinF() : 720; }
-    if (!isToday) ORB.live = false;
-    ORB.cv = cv; ORB.y = y; ORB.m = m; ORB.d = d; ORB.txt = {};
-    try { ORB.fam = getComputedStyle(document.body).fontFamily || ORB.fam; } catch(e){}
-    if (ORB.ro) ORB.ro.disconnect(); if (ORB.io) ORB.io.disconnect();
-    if (window.ResizeObserver){ ORB.ro = new ResizeObserver(function(){ drawOrb(); }); ORB.ro.observe(cv); }
-    ORB.vis = true;
-    if (window.IntersectionObserver){ ORB.io = new IntersectionObserver(function(en){ ORB.vis = en[0].isIntersecting; if (ORB.vis) orbRefresh(); }); ORB.io.observe(cv); }
-    var rg = document.getElementById('orbRange');
-    rg.addEventListener('input', function(){ ORB.min = +rg.value; ORB.live = false; orbRefresh(); });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ try { ORB.fam = getComputedStyle(document.body).fontFamily; } catch(e){} if (ORB.cv === cv) orbRefresh(); });
-    orbRefresh();
-    ORB.tm = setInterval(orbTick, 1000);
+  function arcSVG(t, dim){
+    t = Math.max(0, Math.min(1, t));
+    var p0 = { x:20, y:100 }, p1 = { x:200, y:-60 }, p2 = { x:380, y:100 };
+    var x = (1-t)*(1-t)*p0.x + 2*(1-t)*t*p1.x + t*t*p2.x;
+    var y = (1-t)*(1-t)*p0.y + 2*(1-t)*t*p1.y + t*t*p2.y;
+    return '<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMid meet" role="img" aria-label="সূর্যোদয় থেকে সূর্যাস্ত পর্যন্ত সূর্যের পথ">'
+      + '<line class="arc-noon" x1="200" y1="14" x2="200" y2="100"/>'
+      + '<line class="arc-base" x1="8" y1="100" x2="392" y2="100"/>'
+      + '<path class="arc-path" d="M ' + p0.x + ' ' + p0.y + ' Q ' + p1.x + ' ' + p1.y + ' ' + p2.x + ' ' + p2.y + '"/>'
+      + '<g opacity="' + (dim ? .35 : 1) + '"><circle class="arc-halo" cx="' + x + '" cy="' + y + '" r="14"/><circle class="arc-sun" cx="' + x + '" cy="' + y + '" r="8"/></g>'
+      + '</svg>';
   }
 
   function renderDay(){
@@ -1346,6 +1084,11 @@
     var sun = calcSun(y, m, d), s = SEASON[getSeason(m, d)];
     var dow = new Date(y, m - 1, d).getDay();
     var isToday = (y === TODAY.y && m === TODAY.m && d === TODAY.d);
+    var t = 0.5, dim = false;
+    if (isToday){
+      t = (NOW.min - sun.sunriseMin) / (sun.sunsetMin - sun.sunriseMin);
+      dim = t < 0 || t > 1;
+    }
     var c = calLines(y, m, d);
     document.getElementById('viewBody').innerHTML =
         '<div class="day-view" style="--s:var(--' + s.key + ');--on:' + s.on + '">'
@@ -1354,7 +1097,7 @@
       +     '<div class="day-dow">' + WEEKDAYS_FULL[dow] + (isToday ? ' · আজ' : '') + '</div></div>'
       +     '<div class="badge">' + s.bn + 'কাল</div>'
       +   '</div>'
-      +   orbHTML(isToday)
+      +   '<div class="arc-wrap">' + arcSVG(t, dim) + '</div>'
       +   '<div class="stat-row">'
       +     '<div class="stat ico">' + '<svg class="sico" viewBox="0 0 32 32" aria-hidden="true"><path class="disc" d="M9 24a7 7 0 0 1 14 0z"/><path class="ln" d="M3 24h26M8 28h16M16 13V4M12 8l4-4 4 4"/></svg>' + '<div><div class="lbl">সূর্যোদয়</div><div class="v">' + timeHTML(sun.sunriseMin) + '</div></div></div>'
       +     '<div class="stat ico">' + '<svg class="sico" viewBox="0 0 32 32" aria-hidden="true"><path class="disc" d="M9 24a7 7 0 0 1 14 0z"/><path class="ln" d="M3 24h26M8 28h16M16 4v9M12 9l4 4 4-4"/></svg>' + '<div><div class="lbl">সূর্যাস্ত</div><div class="v">' + timeHTML(sun.sunsetMin) + '</div></div></div>'
@@ -1366,7 +1109,6 @@
       +     '<div class="cal-line"><div class="k">হিজরি তারিখ</div><div class="big">' + c.hjBig + '</div></div>'
       +   '</div>'
       + '</div>';
-    initOrb(y, m, d, isToday);
   }
 
   function renderView(){
@@ -1472,7 +1214,7 @@
     if (a === 'toggle-theme'){
       var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('sunalmanac.theme', next); } catch(err){}
+      DIN_THEME.set(next);
       renderTheme();
     } else if (a === 'set-year'){
       state.year = parseInt(v, 10);
@@ -1505,8 +1247,6 @@
       stepCarousel(-1);
     } else if (a === 'car-next'){
       stepCarousel(1);
-    } else if (a === 'orb-now'){
-      ORB.live = true; orbRefresh();
     } else if (a === 'gal-prev'){
       stepGal(-1);
     } else if (a === 'gal-next'){
