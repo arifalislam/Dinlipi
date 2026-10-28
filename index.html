@@ -939,17 +939,12 @@
         : '');
     var track = document.getElementById('galTrack');
     if (track){
+      var lp = loopify(track);
       track.querySelectorAll('img').forEach(function(img){
         img.addEventListener('error', function(){ img.parentNode.classList.add('broken'); });
       });
-      track.addEventListener('scroll', syncGal, { passive:true });
-      syncGal();
+      lp.home(lp.items[0]);
     }
-  }
-  function syncGal(){
-    var t = document.getElementById('galTrack'); if (!t) return;
-    document.getElementById('galPrev').disabled = t.scrollLeft <= 2;
-    document.getElementById('galNext').disabled = t.scrollLeft >= t.scrollWidth - t.clientWidth - 2;
   }
   function stepGal(dir){
     var t = document.getElementById('galTrack'); if (!t) return;
@@ -1157,22 +1152,40 @@
     else if (state.view === 'week') renderWeek();
     else renderDay();
   }
+  /* endless horizontal scroller: three copies of the items, the view rests on the middle copy */
+  function loopify(track){
+    var items = Array.prototype.slice.call(track.children), pre = document.createDocumentFragment(), post = document.createDocumentFragment();
+    items.forEach(function(el){
+      [pre, post].forEach(function(frag){
+        var c = el.cloneNode(true);
+        c.setAttribute('aria-hidden', 'true'); c.inert = true; c.setAttribute('data-clone', '1');
+        frag.appendChild(c);
+      });
+    });
+    track.insertBefore(pre, track.firstChild);
+    track.appendChild(post);
+    function pos(el){ return el.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft; }
+    function setW(){ return pos(items[0]) - pos(track.firstElementChild); }
+    function normalize(){
+      var w = setW(), base = pos(items[0]), c = track.scrollLeft + track.clientWidth / 2;
+      if (w <= 0) return;
+      if (c < base) track.scrollLeft += w;
+      else if (c >= base + w) track.scrollLeft -= w;
+    }
+    var t = 0;
+    track.addEventListener('scroll', function(){ clearTimeout(t); t = setTimeout(normalize, 140); }, { passive:true });
+    window.addEventListener('resize', normalize);
+    return { items: items, home: function(el){ track.scrollLeft = pos(el || items[0]); } };
+  }
   function slStep(dir){
     var l = document.getElementById('seasonList'), f = l && l.querySelector('li');
     if (f) l.scrollBy({ left: dir * (f.offsetWidth + 10), behavior: how() });
   }
-  function slButtons(){
-    var l = document.getElementById('seasonList'); if (!l) return;
-    document.getElementById('slPrev').disabled = l.scrollLeft < 4;
-    document.getElementById('slNext').disabled = l.scrollLeft > l.scrollWidth - l.clientWidth - 4;
-  }
   function slInit(){
     var l = document.getElementById('seasonList'); if (!l) return;
     var cur = l.querySelector('li.now-s');
-    if (cur) l.scrollLeft = cur.getBoundingClientRect().left - l.getBoundingClientRect().left + l.scrollLeft;
-    l.addEventListener('scroll', slButtons, { passive:true });
-    window.addEventListener('resize', slButtons);
-    slButtons();
+    var lp = loopify(l);
+    lp.home(cur ? lp.items[Array.prototype.indexOf.call(lp.items, cur)] : lp.items[0]);
   }
   function renderMonthNow(){
     var bd = bengaliDate(NOW.y, NOW.m, NOW.d), els = document.querySelectorAll('.season-list .m');
