@@ -386,12 +386,6 @@
   .about h2{ margin:0 0 12px; font-weight:700; font-size:clamp(22px, 3.6vw, 26px); line-height:1.3; letter-spacing:0; text-wrap:balance; }
   .about p{ max-width:68ch; margin:0 0 12px; font-size:17px; line-height:1.8; color:var(--dim); }
   .about p strong{ color:var(--ink); font-weight:600; }
-  .season-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap:10px; margin:0; padding:0; list-style:none; }
-  .season-list li{ background:var(--card); border-radius:18px; padding:16px 18px 18px; min-width:0; }
-  .season-list h3{ margin:0; font-size:24px; font-weight:700; display:flex; align-items:center; gap:10px; }
-  .season-list h3::before{ content:''; width:12px; height:12px; border-radius:50%; background:var(--s); flex:none; }
-  .season-list .when{ margin:4px 0 0; font-size:14.5px; color:var(--dim); }
-  .season-list .what{ margin:8px 0 0; font-size:16.5px; line-height:1.75; color:var(--ink); }
   .month-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap:10px; margin:0; padding:0; list-style:none; }
   .month-list li{ position:relative; background:var(--card); border-radius:18px; padding:14px 16px 16px; min-width:0; box-shadow:inset 0 0 0 2px transparent; }
   .month-list .mno{ margin:0; font-size:13px; line-height:1.4; color:var(--dim); }
@@ -515,12 +509,6 @@
   <section class="season-now" id="seasonNow" aria-live="polite"></section>
 
   <section class="about" aria-labelledby="about-h">
-    <div>
-      <h2>বাংলাদেশের ছয় ঋতু</h2>
-      <p>বাংলাদেশে ছয়টি ঋতু, প্রতিটি দুই বাংলা মাস করে। ১৪ এপ্রিল পহেলা বৈশাখে গ্রীষ্ম দিয়ে ঋতুচক্র শুরু হয়।</p>
-      <ul class="season-list"><li style="--s:var(--grishmo)"><h3><span class="bn">গ্রীষ্ম</span></h3><p class="when">বৈশাখ – জ্যৈষ্ঠ · ১৪ এপ্রিল – ১৪ জুন</p><p class="what">বছরের সবচেয়ে গরম ঋতু। দুপুর-বিকেল গরম ও গুমোট থাকে, আর হঠাৎ কালবৈশাখী ঝড় আসে। আম, কাঁঠাল ও লিচু পাকে।</p></li><li style="--s:var(--barsha)"><h3><span class="bn">বর্ষা</span></h3><p class="when">আষাঢ় – শ্রাবণ · ১৫ জুন – ১৫ আগস্ট</p><p class="what">ভারী বৃষ্টিতে নদী ভরে ওঠে আর নিচু জমি ডুবে যায়। বছরের প্রধান বৃষ্টির ঋতু এটাই।</p></li><li style="--s:var(--sharat)"><h3><span class="bn">শরৎ</span></h3><p class="when">ভাদ্র – আশ্বিন · ১৬ আগস্ট – ১৫ অক্টোবর</p><p class="what">বৃষ্টি কমে আসে, আকাশ পরিষ্কার হয় আর নদীর ধারে কাশফুল ফোটে। এই ঋতুতেই দুর্গাপূজা হয়।</p></li><li style="--s:var(--hemanto)"><h3><span class="bn">হেমন্ত</span></h3><p class="when">কার্তিক – অগ্রহায়ণ · ১৬ অক্টোবর – ১৪ ডিসেম্বর</p><p class="what">সকালে ঠান্ডা ও কুয়াশা পড়তে শুরু করে, আমন ধান কাটা শুরু হয়। অগ্রহায়ণে নবান্ন উৎসব হয়।</p></li><li style="--s:var(--sheet)"><h3><span class="bn">শীত</span></h3><p class="when">পৌষ – মাঘ · ১৫ ডিসেম্বর – ১২ ফেব্রুয়ারি</p><p class="what">সবচেয়ে ঠান্ডা ও শুষ্ক সময়, উত্তরাঞ্চলে কুয়াশা বেশি। খেজুরের রস ও পিঠা এ ঋতুর বিশেষ আয়োজন।</p></li><li style="--s:var(--bosonto)"><h3><span class="bn">বসন্ত</span></h3><p class="when">ফাল্গুন – চৈত্র · ১৩ ফেব্রুয়ারি – ১৩ এপ্রিল</p><p class="what">কৃষ্ণচূড়া ও পলাশ ফোটে। ১৩ ফেব্রুয়ারি পহেলা ফাল্গুনে বসন্তকে বরণ করা হয়।</p></li></ul>
-    </div>
-
     <div>
       <h2>বারো বাংলা মাস</h2>
       <p>বাংলা বছরে বারোটি মাস। বৈশাখ দিয়ে শুরু, চৈত্র দিয়ে শেষ। প্রতিটি মাসের শুরু ও শেষ ইংরেজি তারিখে দেওয়া হলো (বাংলাদেশের সংশোধিত পঞ্জিকা অনুসারে)।</p>
