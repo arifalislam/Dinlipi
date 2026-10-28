@@ -392,6 +392,15 @@
   .season-list h3::before{ content:''; width:12px; height:12px; border-radius:50%; background:var(--s); flex:none; }
   .season-list .when{ margin:4px 0 0; font-size:14.5px; color:var(--dim); }
   .season-list .what{ margin:8px 0 0; font-size:16.5px; line-height:1.75; color:var(--ink); }
+  .month-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap:10px; margin:0; padding:0; list-style:none; }
+  .month-list li{ position:relative; background:var(--card); border-radius:18px; padding:14px 16px 16px; min-width:0; box-shadow:inset 0 0 0 2px transparent; }
+  .month-list .mno{ margin:0; font-size:13px; line-height:1.4; color:var(--dim); }
+  .month-list h3{ margin:2px 0 0; font-size:22px; font-weight:700; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .month-list h3::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--s); flex:none; }
+  .month-list .mseason{ margin:2px 0 0; font-size:15px; font-weight:600; color:var(--ink); }
+  .month-list .when{ margin:6px 0 0; font-size:14px; line-height:1.5; color:var(--dim); }
+  .month-list li.now{ box-shadow:inset 0 0 0 2px var(--s); }
+  .month-list li.now .mname::after{ content:'এখন'; font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--s); color:#0a0b10; }
   .faq details{ background:var(--card); border-bottom:1px solid var(--line); padding:0 18px; }
   .faq details:first-of-type{ border-radius:var(--r) var(--r) 0 0; }
   .faq details:last-of-type{ border-radius:0 0 var(--r) var(--r); border-bottom:0; }
@@ -510,6 +519,12 @@
       <h2>বাংলাদেশের ছয় ঋতু</h2>
       <p>বাংলাদেশে ছয়টি ঋতু, প্রতিটি দুই বাংলা মাস করে। ১৪ এপ্রিল পহেলা বৈশাখে গ্রীষ্ম দিয়ে ঋতুচক্র শুরু হয়।</p>
       <ul class="season-list"><li style="--s:var(--grishmo)"><h3><span class="bn">গ্রীষ্ম</span></h3><p class="when">বৈশাখ – জ্যৈষ্ঠ · ১৪ এপ্রিল – ১৪ জুন</p><p class="what">বছরের সবচেয়ে গরম ঋতু। দুপুর-বিকেল গরম ও গুমোট থাকে, আর হঠাৎ কালবৈশাখী ঝড় আসে। আম, কাঁঠাল ও লিচু পাকে।</p></li><li style="--s:var(--barsha)"><h3><span class="bn">বর্ষা</span></h3><p class="when">আষাঢ় – শ্রাবণ · ১৫ জুন – ১৫ আগস্ট</p><p class="what">ভারী বৃষ্টিতে নদী ভরে ওঠে আর নিচু জমি ডুবে যায়। বছরের প্রধান বৃষ্টির ঋতু এটাই।</p></li><li style="--s:var(--sharat)"><h3><span class="bn">শরৎ</span></h3><p class="when">ভাদ্র – আশ্বিন · ১৬ আগস্ট – ১৫ অক্টোবর</p><p class="what">বৃষ্টি কমে আসে, আকাশ পরিষ্কার হয় আর নদীর ধারে কাশফুল ফোটে। এই ঋতুতেই দুর্গাপূজা হয়।</p></li><li style="--s:var(--hemanto)"><h3><span class="bn">হেমন্ত</span></h3><p class="when">কার্তিক – অগ্রহায়ণ · ১৬ অক্টোবর – ১৪ ডিসেম্বর</p><p class="what">সকালে ঠান্ডা ও কুয়াশা পড়তে শুরু করে, আমন ধান কাটা শুরু হয়। অগ্রহায়ণে নবান্ন উৎসব হয়।</p></li><li style="--s:var(--sheet)"><h3><span class="bn">শীত</span></h3><p class="when">পৌষ – মাঘ · ১৫ ডিসেম্বর – ১২ ফেব্রুয়ারি</p><p class="what">সবচেয়ে ঠান্ডা ও শুষ্ক সময়, উত্তরাঞ্চলে কুয়াশা বেশি। খেজুরের রস ও পিঠা এ ঋতুর বিশেষ আয়োজন।</p></li><li style="--s:var(--bosonto)"><h3><span class="bn">বসন্ত</span></h3><p class="when">ফাল্গুন – চৈত্র · ১৩ ফেব্রুয়ারি – ১৩ এপ্রিল</p><p class="what">কৃষ্ণচূড়া ও পলাশ ফোটে। ১৩ ফেব্রুয়ারি পহেলা ফাল্গুনে বসন্তকে বরণ করা হয়।</p></li></ul>
+    </div>
+
+    <div>
+      <h2>বারো বাংলা মাস</h2>
+      <p>বাংলা বছরে বারোটি মাস। বৈশাখ দিয়ে শুরু, চৈত্র দিয়ে শেষ। প্রতিটি মাসের শুরু ও শেষ ইংরেজি তারিখে দেওয়া হলো (বাংলাদেশের সংশোধিত পঞ্জিকা অনুসারে)।</p>
+      <ul class="month-list"><li data-m="0" style="--s:var(--grishmo)"><p class="mno">১ম মাস</p><h3><span class="mname">বৈশাখ</span></h3><p class="mseason">গ্রীষ্ম</p><p class="when">১৪ এপ্রিল – ১৪ মে</p></li><li data-m="1" style="--s:var(--grishmo)"><p class="mno">২য় মাস</p><h3><span class="mname">জ্যৈষ্ঠ</span></h3><p class="mseason">গ্রীষ্ম</p><p class="when">১৫ মে – ১৪ জুন</p></li><li data-m="2" style="--s:var(--barsha)"><p class="mno">৩য় মাস</p><h3><span class="mname">আষাঢ়</span></h3><p class="mseason">বর্ষা</p><p class="when">১৫ জুন – ১৫ জুলাই</p></li><li data-m="3" style="--s:var(--barsha)"><p class="mno">৪র্থ মাস</p><h3><span class="mname">শ্রাবণ</span></h3><p class="mseason">বর্ষা</p><p class="when">১৬ জুলাই – ১৫ আগস্ট</p></li><li data-m="4" style="--s:var(--sharat)"><p class="mno">৫ম মাস</p><h3><span class="mname">ভাদ্র</span></h3><p class="mseason">শরৎ</p><p class="when">১৬ আগস্ট – ১৫ সেপ্টেম্বর</p></li><li data-m="5" style="--s:var(--sharat)"><p class="mno">৬ষ্ঠ মাস</p><h3><span class="mname">আশ্বিন</span></h3><p class="mseason">শরৎ</p><p class="when">১৬ সেপ্টেম্বর – ১৫ অক্টোবর</p></li><li data-m="6" style="--s:var(--hemanto)"><p class="mno">৭ম মাস</p><h3><span class="mname">কার্তিক</span></h3><p class="mseason">হেমন্তকাল</p><p class="when">১৬ অক্টোবর – ১৪ নভেম্বর</p></li><li data-m="7" style="--s:var(--hemanto)"><p class="mno">৮ম মাস</p><h3><span class="mname">অগ্রহায়ণ</span></h3><p class="mseason">হেমন্তকাল</p><p class="when">১৫ নভেম্বর – ১৪ ডিসেম্বর</p></li><li data-m="8" style="--s:var(--sheet)"><p class="mno">৯ম মাস</p><h3><span class="mname">পৌষ</span></h3><p class="mseason">শীত</p><p class="when">১৫ ডিসেম্বর – ১৩ জানুয়ারি</p></li><li data-m="9" style="--s:var(--sheet)"><p class="mno">১০ম মাস</p><h3><span class="mname">মাঘ</span></h3><p class="mseason">শীত</p><p class="when">১৪ জানুয়ারি – ১২ ফেব্রুয়ারি</p></li><li data-m="10" style="--s:var(--bosonto)"><p class="mno">১১তম মাস</p><h3><span class="mname">ফাল্গুন</span></h3><p class="mseason">বসন্ত</p><p class="when">১৩ ফেব্রুয়ারি – ১৪ মার্চ</p></li><li data-m="11" style="--s:var(--bosonto)"><p class="mno">১২তম মাস</p><h3><span class="mname">চৈত্র</span></h3><p class="mseason">বসন্ত</p><p class="when">১৫ মার্চ – ১৩ এপ্রিল</p></li></ul>
     </div>
 
     <div>
@@ -938,9 +953,7 @@
       el.classList.toggle('on', on);
       el.querySelector('.tag').textContent = on ? (isToday ? 'এখন' : 'নির্বাচিত') : '';
     });
-    var ORD = ['১ম','২য়','৩য়','৪র্থ','৫ম','৬ষ্ঠ'], idx = 0;
-    SEASONS.forEach(function(s, i){ if (s.key === cur) idx = i; });
-    document.getElementById('carLabel').textContent = (isToday ? 'এখন চলছে ' : 'নির্বাচিত তারিখে চলছে ') + ORD[idx] + ' ঋতু - ' + SEASON[cur].bn + 'কাল';
+    document.getElementById('carLabel').textContent = (isToday ? 'এখন - ' : 'নির্বাচিত তারিখে - ') + SEASON[cur].bn + 'কাল';
     renderSeasonNow(cur);
     if (cur !== carCur){
       carCur = cur;
@@ -1119,8 +1132,17 @@
     else if (state.view === 'week') renderWeek();
     else renderDay();
   }
+  function renderMonthNow(){
+    var bd = bengaliDate(NOW.y, NOW.m, NOW.d), els = document.querySelectorAll('.month-list li');
+    for (var i = 0; i < els.length; i++){
+      var on = +els[i].getAttribute('data-m') === bd.monthIdx;
+      els[i].classList.toggle('now', on);
+      if (on) els[i].setAttribute('aria-current', 'date'); else els[i].removeAttribute('aria-current');
+    }
+  }
   function renderAll(){
     renderTheme();
+    renderMonthNow();
     renderYearTabs();
     renderRing();
     renderView();
