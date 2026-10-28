@@ -283,6 +283,8 @@
   .arc-path{ fill:none; stroke:var(--s); stroke-width:3; stroke-dasharray:1 8; stroke-linecap:round; }
   .arc-sun{ fill:var(--s); }
   .arc-halo{ fill:var(--s); opacity:.22; }
+  .arc-now rect{ fill:var(--s); }
+  .arc-now text{ fill:var(--on); font-size:13px; font-weight:700; }
   .arc-noon{ stroke:var(--line); stroke-width:1; stroke-dasharray:2 4; }
   .stat-row{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-top:16px; }
   @media (max-width:640px){ .stat-row{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
@@ -1090,29 +1092,43 @@
   }
 
   /* ---------- render: day ---------- */
-  function arcSVG(t, dim){
+  function arcSVG(t, dim, label){
     t = Math.max(0, Math.min(1, t));
     var p0 = { x:20, y:100 }, p1 = { x:200, y:-60 }, p2 = { x:380, y:100 };
     var x = (1-t)*(1-t)*p0.x + 2*(1-t)*t*p1.x + t*t*p2.x;
     var y = (1-t)*(1-t)*p0.y + 2*(1-t)*t*p1.y + t*t*p2.y;
-    return '<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMid meet" role="img" aria-label="সূর্যোদয় থেকে সূর্যাস্ত পর্যন্ত সূর্যের পথ">'
+    return '<svg viewBox="0 -32 400 152" preserveAspectRatio="xMidYMid meet" role="img" aria-label="সূর্যোদয় থেকে সূর্যাস্ত পর্যন্ত সূর্যের পথ">'
       + '<line class="arc-noon" x1="200" y1="14" x2="200" y2="100"/>'
       + '<line class="arc-base" x1="8" y1="100" x2="392" y2="100"/>'
       + '<path class="arc-path" d="M ' + p0.x + ' ' + p0.y + ' Q ' + p1.x + ' ' + p1.y + ' ' + p2.x + ' ' + p2.y + '"/>'
       + '<g opacity="' + (dim ? .35 : 1) + '"><circle class="arc-halo" cx="' + x + '" cy="' + y + '" r="14"/><circle class="arc-sun" cx="' + x + '" cy="' + y + '" r="8"/></g>'
+      + (label ? '<g class="arc-now"><rect x="' + (Math.max(46, Math.min(354, x)) - 46) + '" y="' + (y - 50) + '" width="92" height="26" rx="13"/><text x="' + Math.max(46, Math.min(354, x)) + '" y="' + (y - 32) + '" text-anchor="middle">' + label + '</text></g>' : '')
       + '</svg>';
   }
+
+  function arcHTML(y, m, d){
+    var sun = calcSun(y, m, d), t = 0.5, dim = false, label = null;
+    if (y === TODAY.y && m === TODAY.m && d === TODAY.d){
+      t = (NOW.min - sun.sunriseMin) / (sun.sunsetMin - sun.sunriseMin);
+      dim = t < 0 || t > 1;
+      label = timeText(NOW.min);
+    }
+    return arcSVG(t, dim, label);
+  }
+  function refreshArc(){
+    var w = document.getElementById('arcWrap');
+    if (!w || state.view !== 'day') return;
+    NOW = dhakaNow();
+    w.innerHTML = arcHTML(state.year, state.month, state.day);
+  }
+  setInterval(refreshArc, 20000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) refreshArc(); });
 
   function renderDay(){
     var y = state.year, m = state.month, d = state.day;
     var sun = calcSun(y, m, d), s = SEASON[getSeason(m, d)];
     var dow = new Date(y, m - 1, d).getDay();
     var isToday = (y === TODAY.y && m === TODAY.m && d === TODAY.d);
-    var t = 0.5, dim = false;
-    if (isToday){
-      t = (NOW.min - sun.sunriseMin) / (sun.sunsetMin - sun.sunriseMin);
-      dim = t < 0 || t > 1;
-    }
     var c = calLines(y, m, d);
     document.getElementById('viewBody').innerHTML =
         '<div class="day-view" style="--s:var(--' + s.key + ');--on:' + s.on + '">'
@@ -1121,7 +1137,7 @@
       +     '<div class="day-dow">' + WEEKDAYS_FULL[dow] + (isToday ? ' · আজ' : '') + '</div></div>'
       +     '<div class="badge">' + s.bn + 'কাল</div>'
       +   '</div>'
-      +   '<div class="arc-wrap">' + arcSVG(t, dim) + '</div>'
+      +   '<div class="arc-wrap" id="arcWrap">' + arcHTML(y, m, d) + '</div>'
       +   '<div class="stat-row">'
       +     '<div class="stat ico">' + '<svg class="sico" viewBox="0 0 32 32" aria-hidden="true"><path class="disc" d="M9 24a7 7 0 0 1 14 0z"/><path class="ln" d="M3 24h26M8 28h16M16 13V4M12 8l4-4 4 4"/></svg>' + '<div><div class="lbl">সূর্যোদয়</div><div class="v">' + timeHTML(sun.sunriseMin) + '</div></div></div>'
       +     '<div class="stat ico">' + '<svg class="sico" viewBox="0 0 32 32" aria-hidden="true"><path class="disc" d="M9 24a7 7 0 0 1 14 0z"/><path class="ln" d="M3 24h26M8 28h16M16 4v9M12 9l4 4 4-4"/></svg>' + '<div><div class="lbl">সূর্যাস্ত</div><div class="v">' + timeHTML(sun.sunsetMin) + '</div></div></div>'
