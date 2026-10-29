@@ -227,9 +227,9 @@
   .day-cell.wk .num{ color:var(--dim); }
   .day-cell.today .num{ background:var(--blue); color:#fff; }
   .day-cell .top{ display:flex; align-items:center; justify-content:space-between; gap:4px; width:100%; min-width:0; }
-  .day-cell .bd{ font-size:clamp(10px, 2.2cqw, 12px); line-height:1.2; color:var(--dim); font-weight:500; white-space:nowrap; text-align:right; min-width:0; overflow:hidden; text-overflow:clip; }
-  .day-cell .bd b{ font-weight:600; }
-  .day-cell .bd.first{ color:var(--ink); font-weight:700; }
+  .day-cell .bd{ font-size:clamp(9.5px, 1.8cqw, 11px); line-height:1.2; color:var(--dim); font-weight:400; font-style:normal; white-space:nowrap; text-align:right; min-width:0; overflow:hidden; text-overflow:clip; }
+  .day-cell .bd b, .day-cell .bd em{ font-weight:400; font-style:normal; }
+  .day-cell .bd.first{ color:var(--ink); }
   .t{ font-size:clamp(10px, 1.9cqw, 12.5px); font-weight:500; line-height:1.45; white-space:nowrap; }
   .t .r{ display:flex; align-items:center; }
   .t small{ font-size:.78em; margin-left:1px; opacity:.65; }
@@ -237,7 +237,6 @@
   .ic .sun{ fill:currentColor; }
   .ic .rays, .ic .hz{ fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
   .ic .hz{ stroke:var(--faint); stroke-width:1.7; }
-  .ic .ar{ fill:none; stroke:var(--dim); stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
   .ic.up{ color:#ffb400; }
   .ic.dn{ color:#ff7a1a; }
   .am-note{ display:none; margin:12px 2px 0; font-size:14px; color:var(--dim); }
@@ -1084,14 +1083,13 @@
   }
 
   /* ---------- render: month ---------- */
-  /* iOS-style sunrise.fill / sunset.fill glyphs: half sun on the horizon, rays, and an arrow on top */
+  /* iOS-style sun-on-horizon glyphs: half sun, rays and horizon lines (sunrise yellow, sunset orange) */
   function ico(kind){
     var up = kind === 'rise';
     return '<svg class="ic ' + (up ? 'up' : 'dn') + '" viewBox="0 0 24 24" aria-hidden="true">'
-      + '<path class="rays" d="M2.6 15.6h2.2M19.2 15.6h2.2M5.4 9.4l1.6 1.6M18.6 9.4L17 11"/>'
+      + '<path class="rays" d="M2.6 15.6h2.2M19.2 15.6h2.2M5.4 9.4l1.6 1.6M18.6 9.4L17 11M12 4.4v2.4"/>'
       + '<path class="sun" d="M6.8 16.2a5.2 5.2 0 0 1 10.4 0z"/>'
       + '<path class="hz" d="M2.5 19.4h19M7 22.6h10"/>'
-      + '<path class="ar" d="' + (up ? 'M12 8.6V2.6M9.4 5.2L12 2.6l2.6 2.6' : 'M12 2.6v6M9.4 6l2.6 2.6L14.6 6') + '"/>'
       + '</svg>';
   }
   function renderMonth(){
