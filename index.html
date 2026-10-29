@@ -226,17 +226,26 @@
   }
   .day-cell.wk .num{ color:var(--dim); }
   .day-cell.today .num{ background:var(--blue); color:#fff; }
-  .t{ font-size:clamp(12px, 2.5cqw, 15px); font-weight:500; line-height:1.5; white-space:nowrap; }
-  .t span{ display:block; }
+  .day-cell .top{ display:flex; align-items:center; justify-content:space-between; gap:4px; width:100%; min-width:0; }
+  .day-cell .bd{ font-size:clamp(10px, 2.2cqw, 12px); line-height:1.2; color:var(--dim); font-weight:500; white-space:nowrap; text-align:right; min-width:0; overflow:hidden; text-overflow:clip; }
+  .day-cell .bd b{ font-weight:600; }
+  .day-cell .bd.first{ color:var(--ink); font-weight:700; }
+  .t{ font-size:clamp(10px, 1.9cqw, 12.5px); font-weight:500; line-height:1.45; white-space:nowrap; }
+  .t .r{ display:flex; align-items:center; }
   .t small{ font-size:.78em; margin-left:1px; opacity:.65; }
-  .tri{ display:inline-block; width:.62em; height:.54em; margin-right:.32em; background:currentColor; color:var(--rise); clip-path:polygon(50% 0, 0 100%, 100% 100%); }
-  .tri.dn{ transform:rotate(180deg); color:var(--set); }
+  .ic{ flex:none; display:inline-block; width:1.45em; height:1.45em; margin-right:.2em; vertical-align:-.3em; }
+  .ic .disc{ fill:currentColor; }
+  .ic .ln{ fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; }
+  .ic.up{ color:var(--rise); }
+  .ic.dn{ color:var(--set); }
   .am-note{ display:none; margin:12px 2px 0; font-size:14px; color:var(--dim); }
-  @container (max-width:330px){ .t .tri{ display:none; } }
+  .am-note .ic{ width:1.3em; height:1.3em; }
+  @container (max-width:330px){ .t .ic{ display:none; } }
   /* phones: sunrise is always am and sunset always pm here, so the suffix moves into a key */
   @container (max-width:760px){
     .t small{ display:none; }
-    .t{ font-size:clamp(11.5px, 3.6cqw, 15px); }
+    .t{ font-size:clamp(9.5px, 2.9cqw, 12.5px); }
+    .day-cell .bd em{ display:none; }
     .am-note{ display:block; }
   }
   @media (max-width:560px){
@@ -1073,6 +1082,10 @@
   }
 
   /* ---------- render: month ---------- */
+  function ico(kind){
+    return '<svg class="ic ' + (kind === 'rise' ? 'up' : 'dn') + '" viewBox="0 0 32 32" aria-hidden="true"><path class="disc" d="M9 24a7 7 0 0 1 14 0z"/><path class="ln" d="M3 24h26M8 28h16'
+      + (kind === 'rise' ? 'M16 13V4M12 8l4-4 4 4' : 'M16 4v9M12 9l4 4 4-4') + '"/></svg>';
+  }
   function renderMonth(){
     var y = state.year, m = state.month;
     var firstDow = new Date(y, m - 1, 1).getDay(), dim = daysInMonth(y, m);
@@ -1083,17 +1096,18 @@
     for (var i = 0; i < firstDow; i++) grid += '<div class="day-cell empty" aria-hidden="true"></div>';
     for (var d = 1; d <= dim; d++){
       var dow = new Date(y, m - 1, d).getDay();
-      var sun = calcSun(y, m, d);
+      var sun = calcSun(y, m, d), bd = bengaliDate(y, m, d);
       var isToday = (y === TODAY.y && m === TODAY.m && d === TODAY.d);
       grid += '<button class="day-cell' + (isWeekend(dow) ? ' wk' : '') + (isToday ? ' today' : '') + '" '
             + 'style="--s:var(--' + getSeason(m, d) + ')" data-action="open-date" data-value="' + y + '-' + m + '-' + d + '" '
             + 'aria-label="' + bnNum(d) + ' ' + MONTHS[m - 1] + ' ' + bnNum(y) + ', সূর্যোদয় ' + timeText(sun.sunriseMin) + ', সূর্যাস্ত ' + timeText(sun.sunsetMin) + '। বাংলা ও হিজরি তারিখ দেখুন">'
-            + '<span class="num">' + bnNum(d) + '</span>'
-            + '<span class="t"><span><i class="tri"></i>' + timeHTML(sun.sunriseMin) + '</span><span class="dn-row"><i class="tri dn"></i>' + timeHTML(sun.sunsetMin) + '</span></span>'
+            + '<span class="top"><span class="num">' + bnNum(d) + '</span>'
+            + '<span class="bd' + (bd.day === 1 ? ' first' : '') + '" aria-hidden="true"><b>' + bnNum(bd.day) + '</b><em> ' + BN_MONTHS[bd.monthIdx] + '</em></span></span>'
+            + '<span class="t"><span class="r">' + ico('rise') + timeHTML(sun.sunriseMin) + '</span><span class="r">' + ico('set') + timeHTML(sun.sunsetMin) + '</span></span>'
             + '</button>';
     }
     grid += '</div>';
-    document.getElementById('viewBody').innerHTML = wd + grid + '<p class="am-note"><i class="tri"></i> সূর্যোদয় (এএম) \u00b7 <i class="tri dn"></i> সূর্যাস্ত (পিএম)</p>';
+    document.getElementById('viewBody').innerHTML = wd + grid + '<p class="am-note">' + ico('rise') + ' সূর্যোদয় (এএম) \u00b7 ' + ico('set') + ' সূর্যাস্ত (পিএম) \u00b7 ডানে ছোট অক্ষরে বাংলা তারিখ</p>';
   }
 
   /* ---------- render: week ---------- */
@@ -1109,8 +1123,8 @@
       html += '<button class="week-row' + (isToday ? ' today' : '') + '" style="--s:var(--' + getSeason(m, day) + ')" '
             + 'data-action="open-date" data-value="' + y + '-' + m + '-' + day + '">'
             + '<span class="wd"><span class="dow">' + WEEKDAYS_FULL[d.getDay()] + '</span>' + bnNum(day) + ' ' + MONTHS[m - 1] + ' ' + bnNum(y) + '</span>'
-            + '<span class="val"><i class="tri"></i>' + timeHTML(sun.sunriseMin) + '</span>'
-            + '<span class="val"><i class="tri dn"></i>' + timeHTML(sun.sunsetMin) + '</span>'
+            + '<span class="val">' + ico('rise') + timeHTML(sun.sunriseMin) + '</span>'
+            + '<span class="val">' + ico('set') + timeHTML(sun.sunsetMin) + '</span>'
             + '<span class="val len">' + fmtLength(sun.sunriseMin, sun.sunsetMin) + '</span>'
             + '</button>';
     }
@@ -1426,8 +1440,8 @@
       +   '<div class="ctl"><button data-action="hijri-shift" data-value="-1" aria-label="হিজরি তারিখ এক দিন পিছিয়ে দিন"' + (sh <= -1 ? ' disabled' : '') + '>−</button>'
       +   '<output aria-live="polite">' + (sh > 0 ? '+' : sh < 0 ? '\u2212' : '') + bnNum(Math.abs(sh)) + ' দিন</output>'
       +   '<button data-action="hijri-shift" data-value="1" aria-label="হিজরি তারিখ এক দিন এগিয়ে দিন"' + (sh >= 1 ? ' disabled' : '') + '>+</button></div></div></div>'
-      + '<div class="dlg-sun"><span><i class="tri"></i> ' + timeHTML(sun.sunriseMin) + '</span>'
-      +   '<span><i class="tri dn"></i> ' + timeHTML(sun.sunsetMin) + '</span>'
+      + '<div class="dlg-sun"><span>' + ico('rise') + timeHTML(sun.sunriseMin) + '</span>'
+      +   '<span>' + ico('set') + timeHTML(sun.sunsetMin) + '</span>'
       +   '<span class="mut">দিনের দৈর্ঘ্য: ' + fmtLength(sun.sunriseMin, sun.sunsetMin, true) + '</span></div>'
       + '<div class="dlg-foot">'
       +   '<button class="nav-btn" data-action="popup-step" data-value="-1" aria-label="আগের দিন"' + (prevOk ? '' : ' disabled') + '>‹</button>'
