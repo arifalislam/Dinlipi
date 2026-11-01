@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://arifalislam.github.io/BD-calendar/sitemap.xml
+Sitemap: https://arifalislam.github.io/Dinlipi/sitemap.xml

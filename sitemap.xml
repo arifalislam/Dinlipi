@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://arifalislam.github.io/BD-calendar/</loc>
-    <lastmod>2026-10-21</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://arifalislam.github.io/Dinlipi/</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="bn-BD" href="https://arifalislam.github.io/Dinlipi/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://arifalislam.github.io/Dinlipi/"/>
+    <image:image>
+      <image:loc>https://arifalislam.github.io/Dinlipi/og-image.png</image:loc>
+      <image:title>দিনলিপি-তে ছয় বাংলা ঋতু</image:title>
+    </image:image>
   </url>
 </urlset>
