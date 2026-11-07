@@ -1,7 +1,7 @@
 /* Dinlipi service worker: offline shell + runtime caching */
-var CORE_CACHE = 'dinlipi-core-v1';
-var RUNTIME_CACHE = 'dinlipi-runtime-v1';
-var CORE = ['./', 'index.html', 'favicon.svg', 'favicon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'site.webmanifest'];
+var CORE_CACHE = 'dinlipi-core-v2';
+var RUNTIME_CACHE = 'dinlipi-runtime-v2';
+var CORE = ['./', 'index.html', 'favicon.ico', 'favicon-48.png', 'favicon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'site.webmanifest'];
 var CACHE_FIRST_HOSTS = ['fonts.gstatic.com', 'upload.wikimedia.org', 'images.unsplash.com', 'images.pexels.com'];
 var SWR_HOSTS = ['fonts.googleapis.com'];
 var MAX_RUNTIME = 90;
