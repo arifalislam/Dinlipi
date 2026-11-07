@@ -166,6 +166,34 @@
   .toast span{ flex:1; min-width:0; }
   .toast button{ flex:none; width:28px; height:28px; border-radius:50%; background:var(--fill); color:var(--dim); font-size:13px; line-height:28px; }
 
+
+  /* ---------- install bottom sheet ---------- */
+  .sheet{
+    position:fixed; left:50%; bottom:0; z-index:70; width:min(520px, 100%);
+    transform:translate(-50%, 105%); visibility:hidden;
+    transition:transform .42s cubic-bezier(.32,.72,0,1), visibility 0s linear .42s;
+    padding:8px 20px max(20px, env(safe-area-inset-bottom));
+    background:var(--card); color:var(--ink); border-radius:22px 22px 0 0;
+    box-shadow:0 -12px 40px rgba(0,0,0,.28), inset 0 1px 0 var(--line); touch-action:pan-x;
+  }
+  .sheet.open{ transform:translate(-50%, 0); visibility:visible; transition:transform .42s cubic-bezier(.32,.72,0,1), visibility 0s; }
+  .sheet.drag{ transition:none; }
+  .is-grab{ width:38px; height:5px; border-radius:3px; background:var(--fill2); margin:4px auto 16px; }
+  .is-row{ display:flex; gap:14px; align-items:center; }
+  .is-icon{ flex:none; width:60px; height:60px; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.18); }
+  .sheet h3{ margin:0 0 4px; font-size:19px; font-weight:700; line-height:1.3; }
+  .sheet p{ margin:0; font-size:16px; line-height:1.6; color:var(--dim); }
+  .is-steps{ margin:16px 0 0; padding:12px 16px 12px 36px; border-radius:14px; background:var(--fill); font-size:15px; line-height:1.9; }
+  .is-steps[hidden]{ display:none; }
+  .is-actions{ display:flex; gap:10px; margin-top:18px; }
+  .is-btn{ flex:1; height:48px; border-radius:14px; font-size:17px; font-weight:600; }
+  .is-btn.ghost{ background:var(--fill); color:var(--ink); }
+  .is-btn.ghost:hover{ background:var(--fill2); }
+  .is-btn.primary{ flex:1.6; background:var(--blue); color:#fff; }
+  .is-btn:active{ transform:scale(.97); }
+  :root[data-theme="dark"] .is-btn.primary{ background:#0a84ff; }
+  @media (prefers-reduced-motion: reduce){ .sheet, .sheet.open{ transition:none; } }
+
   /* ---------- segmented control ---------- */
   .seg{ display:flex; padding:2px; border-radius:10px; background:var(--fill); height:var(--ctl-h); }
   .seg button{
@@ -677,6 +705,26 @@
 </div>
 
 <dialog id="dateDialog" aria-labelledby="dlgTitle"></dialog>
+
+<div class="sheet" id="installSheet" role="dialog" aria-modal="false" aria-labelledby="isTitle" aria-hidden="true">
+  <div class="is-grab" aria-hidden="true"></div>
+  <div class="is-row">
+    <img class="is-icon" src="apple-touch-icon.png" width="60" height="60" alt="">
+    <div>
+      <h3 id="isTitle">দিনলিপি অ্যাপ ইনস্টল করুন</h3>
+      <p>ফোনের হোম স্ক্রিন থেকে এক ট্যাপে খুলুন, ইন্টারনেট ছাড়াও চলবে।</p>
+    </div>
+  </div>
+  <ol class="is-steps" id="isSteps" hidden>
+    <li>ব্রাউজারের <b>শেয়ার</b> বোতামে চাপুন</li>
+    <li><b>হোম স্ক্রিনে যোগ করুন</b> বেছে নিন</li>
+    <li>ওপরে ডানের <b>যোগ করুন</b> চাপুন</li>
+  </ol>
+  <div class="is-actions">
+    <button type="button" class="is-btn ghost" id="isLater">পরে</button>
+    <button type="button" class="is-btn primary" id="isInstall">ইনস্টল করুন</button>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button type="button" id="toastClose" aria-label="বন্ধ করুন">✕</button></div>
 
@@ -1659,18 +1707,46 @@
       return window.navigator.standalone === true;
     }
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    function sync(){ btn.hidden = standalone() || !(deferred || ios); }
-    window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; sync(); });
-    window.addEventListener('appinstalled', function(){ deferred = null; sync(); toast('দিনলিপি ইনস্টল হয়েছে। এখন হোম স্ক্রিন বা অ্যাপ তালিকা থেকে খুলুন।', 5000); });
-    btn.addEventListener('click', function(){
+    var framed = false; try { framed = window.top !== window.self; } catch(e){ framed = true; }
+    function sync(){ btn.hidden = framed || standalone() || !(deferred || ios); }
+    var sheet = document.getElementById('installSheet'), isInstall = document.getElementById('isInstall'), isSteps = document.getElementById('isSteps');
+    var LATER = 'dinlipi.install-later', autoShown = false;
+    function openSheet(){
+      if (framed || standalone()) return;
+      if (!deferred){ isSteps.hidden = false; isInstall.textContent = 'বুঝেছি'; } else { isSteps.hidden = true; isInstall.textContent = 'ইনস্টল করুন'; }
+      sheet.style.transform = ''; sheet.classList.remove('drag');
+      sheet.setAttribute('aria-hidden', 'false'); sheet.classList.add('open');
+    }
+    function closeSheet(later){
+      sheet.style.transform = ''; sheet.classList.remove('drag', 'open'); sheet.setAttribute('aria-hidden', 'true');
+      if (later){ try { localStorage.setItem(LATER, String(Date.now())); } catch(e){} }
+    }
+    function autoOpen(){
+      if (autoShown || framed || standalone() || !(deferred || ios)) return;
+      var t = 0; try { t = +localStorage.getItem(LATER) || 0; } catch(e){}
+      if (Date.now() - t < 7 * 864e5) return;
+      autoShown = true; setTimeout(openSheet, 2500);
+    }
+    window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; sync(); autoOpen(); });
+    window.addEventListener('appinstalled', function(){ deferred = null; sync(); closeSheet(false); toast('দিনলিপি ইনস্টল হয়েছে। এখন হোম স্ক্রিন বা অ্যাপ তালিকা থেকে খুলুন।', 5000); });
+    btn.addEventListener('click', openSheet);
+    isInstall.addEventListener('click', function(){
       if (deferred){
-        deferred.prompt();
-        deferred.userChoice.then(function(){ deferred = null; sync(); }, function(){});
-      } else if (ios){
-        toast('ইনস্টল করতে ব্রাউজারের শেয়ার বোতামে চেপে ‘হোম স্ক্রিনে যোগ করুন’ বেছে নিন।', 10000);
-      }
+        var d = deferred; closeSheet(false); d.prompt();
+        d.userChoice.then(function(r){ deferred = null; sync(); if (r && r.outcome !== 'accepted') try { localStorage.setItem(LATER, String(Date.now())); } catch(e){} }, function(){});
+      } else closeSheet(true);
     });
+    document.getElementById('isLater').addEventListener('click', function(){ closeSheet(true); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && sheet.classList.contains('open')) closeSheet(true); });
+    (function(){
+      var y0 = null, dy = 0;
+      sheet.addEventListener('pointerdown', function(e){ if (e.target.closest('button')) return; y0 = e.clientY; dy = 0; sheet.classList.add('drag'); try { sheet.setPointerCapture(e.pointerId); } catch(x){} });
+      sheet.addEventListener('pointermove', function(e){ if (y0 === null) return; dy = Math.max(0, e.clientY - y0); sheet.style.transform = 'translate(-50%,' + dy + 'px)'; });
+      function end(){ if (y0 === null) return; y0 = null; sheet.classList.remove('drag'); if (dy > 70) closeSheet(true); else sheet.style.transform = ''; }
+      sheet.addEventListener('pointerup', end); sheet.addEventListener('pointercancel', end);
+    })();
     sync();
+    autoOpen();
 
     window.addEventListener('offline', function(){
       toast('আপনি অফলাইনে আছেন। সূর্যোদয়, সূর্যাস্ত ও তারিখ ঠিকঠাক দেখা যাবে; নতুন আবহাওয়া ও ছবি আসতে নাও পারে।', 7000);
